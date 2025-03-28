@@ -19,6 +19,21 @@ public class Client implements Runnable {
         try {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            Runtime.getRuntime().addShutdownHook(new Thread()
+            {
+                @Override
+                public void run()
+                {
+                    String exitMessage = "\u001B[33m" + username + " has left the chat" + "\u001B[0m";
+                    try {
+                        writer.write(exitMessage);
+                        writer.newLine();
+                        writer.flush();
+                    } catch (IOException e) {
+                        System.out.println("Error in sanding final message");
+                    }
+                }
+            });
         } catch (IOException e) {
             System.out.println(e);
             e.printStackTrace();
@@ -27,6 +42,7 @@ public class Client implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("To left the chat enter '<<exit>>'");
         sendMessages();
         listenToMessages();
     }
@@ -43,7 +59,14 @@ public class Client implements Runnable {
                     //MessageHandler.messages.add(entranceMessage);
                     Scanner scanner = new Scanner(System.in);
                     while (socket.isConnected()) {
-                        String message = scanner.nextLine();
+                        String message = "";
+                        try {
+                            message = scanner.nextLine();
+                            if (message.equals("<<exit>>"))
+                                System.exit(0);
+                        } catch (Exception e) {
+                            continue;
+                        }
                         String outputString = username + "(" + socket.getInetAddress() + "): " + message;
                         writer.write(outputString);
                         writer.newLine();
