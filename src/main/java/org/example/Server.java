@@ -4,14 +4,10 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 public class Server implements Runnable {
 
     private final ServerSocket serverSocket;
-    private ArrayList<BufferedReader> readers = new ArrayList<>();
-    private static ArrayList<BufferedWriter> writers;
 
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
@@ -19,8 +15,7 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Server is running...");
-
+        System.out.println("\u001B[32m" + "Server is running..." + "\u001B[0m");
         while (!serverSocket.isClosed()) {
             Socket socket = null;
             try {
@@ -40,12 +35,15 @@ public class Server implements Runnable {
         private BufferedReader reader;
         static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
 
+        private final Object obj = new Object();
+
         public ClientHandler(Socket socket) {
             try {
                 this.socket = socket;
                 writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                 reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 clientHandlers.add(this);
+                // MessageHandler.sendMessages(socket);
             } catch (IOException e) {
 
             }
@@ -68,21 +66,44 @@ public class Server implements Runnable {
         }
 
         private void broadcastMessage(String message) {
+            /*if (message.startsWith("/<<previous messages>>/")) {
+                if (MessageHandler.historyIsReceived)
+                    return;
+                synchronized (obj) {
+                    if (MessageHandler.historyIsReceived)
+                        return;
+                    String[] messages = message.substring("/<<previous messages>>/".length()).split("\\|");
+                    for (String m : messages) {
+                        if (m.equals(" ") || m.isEmpty())
+                            continue;
+                        try {
+                            writer.write(message);
+                            writer.newLine();
+                            writer.flush();
+                            MessageHandler.messages.add(message);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    MessageHandler.historyIsReceived = true;
+                }
+                return;
+            }*/
             for (ClientHandler clientHandler : clientHandlers) {
-                try{
-                     if(!clientHandler.equals(this)) {
+                try {
+                    if (!clientHandler.equals(this)) {
                         clientHandler.writer.write(message);
                         clientHandler.writer.newLine();
                         clientHandler.writer.flush();
-                     }
-                }catch (IOException e) {
+                    }
+                } catch (IOException e) {
                     removeClientHandler(clientHandler);
                     closeEverything(clientHandler);
                 }
             }
         }
 
-        private void closeEverything(ClientHandler clientHandler){
+        private void closeEverything(ClientHandler clientHandler) {
             try {
                 clientHandler.writer.close();
                 clientHandler.reader.close();
@@ -92,37 +113,11 @@ public class Server implements Runnable {
             }
         }
 
-        private void removeClientHandler(ClientHandler clientHandler){
+        private void removeClientHandler(ClientHandler clientHandler) {
             clientHandlers.remove(clientHandler);
             closeEverything(clientHandler);
         }
     }
 
-
-    /*
-    private static class ClientHandler implements Runnable {
-        private Socket socket;
-        private BufferedWriter writer;
-
-
-        public ClientHandler(Socket socket) {
-            this.socket = socket;
-        }
-
-        @Override
-        public void run() {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-                String message;
-                while(socket.isConnected()) {
-                    message = reader.readLine();
-                    if (message != null)
-                        System.out.println(message);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-*/
 
 }

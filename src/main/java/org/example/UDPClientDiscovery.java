@@ -18,7 +18,7 @@ public class UDPClientDiscovery {
     public void perform() {
         try {
             DatagramPacket sendingPacket = new DatagramPacket(new byte[1024], 1024, address, PORT);
-            System.out.println("Send request to find servers...");
+            System.out.println("\u001B[32m" + "Send request to find servers..." + "\u001B[0m");
             socket.send(sendingPacket);
 
             long send_time = System.currentTimeMillis();
@@ -32,13 +32,13 @@ public class UDPClientDiscovery {
                 try {
                     Socket remote = new Socket(receivingPacket.getAddress(), 5000);
                     new Thread(new ClientListener(remote)).start();
-                    System.out.println("Client: Connect with " + receivingPacket.getAddress());
+                    System.out.println("\u001B[36m" + "Client: Connect with " + receivingPacket.getAddress() + "\u001B[0m");
                 } catch (SocketException e) {
                     e.printStackTrace();
                 }
             }
         } catch (IOException e) {
-            System.out.println("Time out exited");
+            System.out.println("\u001B[31m" +  "Time out exited" + "\u001B[0m");
         } finally {
             socket.close();
         }

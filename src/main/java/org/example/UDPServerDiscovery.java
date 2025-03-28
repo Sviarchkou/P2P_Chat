@@ -30,7 +30,8 @@ public class UDPServerDiscovery implements Runnable {
                 Socket clientSocket = new Socket(senderAddress, 5000);
                 //new Thread(new Client(clientSocket)).start();
                 new Thread(new ClientListener(clientSocket)).start();
-                System.out.println("Server: Connect with " + senderAddress);
+                // MessageHandler.sendMessages(clientSocket);
+                System.out.println("\u001B[36m" + "Server: Connect with " + senderAddress + "\u001B[0m");
 
                 DatagramPacket outputPacket = new DatagramPacket(sendingDataBuffer, sendingDataBuffer.length, senderAddress, senderPort);
                 socket.send(outputPacket);

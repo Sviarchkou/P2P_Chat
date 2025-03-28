@@ -10,7 +10,7 @@ import java.util.Scanner;
 public class Client implements Runnable {
     private final Socket socket;
     private String username;
-    //private BufferedReader reader;
+    private BufferedReader reader;
     private BufferedWriter writer;
 
     public Client(Socket socket, String username) {
@@ -18,7 +18,7 @@ public class Client implements Runnable {
         this.username = username;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            // reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
             System.out.println(e);
             e.printStackTrace();
@@ -28,7 +28,7 @@ public class Client implements Runnable {
     @Override
     public void run() {
         sendMessages();
-        // listenToMessages();
+        listenToMessages();
     }
 
     private void sendMessages() {
@@ -36,16 +36,19 @@ public class Client implements Runnable {
             @Override
             public void run() {
                 try {
-                    writer.write(username + " has entered the chat");
+                    String entranceMessage = "\u001B[33m" + username + " has entered the chat" + "\u001B[0m";
+                    writer.write(entranceMessage);
                     writer.newLine();
                     writer.flush();
-
+                    //MessageHandler.messages.add(entranceMessage);
                     Scanner scanner = new Scanner(System.in);
                     while (socket.isConnected()) {
                         String message = scanner.nextLine();
-                        writer.write(username + "(" + socket.getInetAddress() + "): " + message);
+                        String outputString = username + "(" + socket.getInetAddress() + "): " + message;
+                        writer.write(outputString);
                         writer.newLine();
                         writer.flush();
+                        //MessageHandler.messages.add(outputString);
                     }
                 } catch (IOException e) {
                     closeEverything();
@@ -63,7 +66,6 @@ public class Client implements Runnable {
         }
     }
 
-    /*
 
     private void listenToMessages() {
         new Thread(new Runnable() {
@@ -80,5 +82,4 @@ public class Client implements Runnable {
             }
         }).start();
     }
-*/
 }
